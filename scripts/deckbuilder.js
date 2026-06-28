@@ -1,4 +1,4 @@
-if(stuff.substring(0, 8) != "#builder") throw "";
+if(stuff.substring(0, 8) != "#builder") throw null;
 
 let modifyingDeckID = Number.parseInt(stuff.substring(9))
 console.log(modifyingDeckID)

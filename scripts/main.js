@@ -22,7 +22,12 @@ playButton.classList.add("buttonLarge")
 playButton.style.top = height / 2 - tileWidth * 1.5
 playButton.style.left = width / 2 - tileWidth * 1.5
 
-playButton.innerText = "\nComing Soon"
+playButton.onclick = (() => {
+    window.location.href = document.URL + "#bots"
+    window.location.reload()
+})
+
+playButton.innerText = "\nBot Match"
 
 body.appendChild(playButton)
 

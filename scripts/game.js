@@ -91,6 +91,159 @@ let cardDescriptions = {
 }
 let fusions = ["witherImpact","darkClaymore","scarfsStudies"]
 
+let botDecks = {
+    "Livid": ["lividDagger","silentDeath","giantsSword","wardenHelmet","helpFromTheAbove","helpFromTheAbove","wandOfHealing","steakStake"]
+}
+
+let botLogic = {
+    "Livid": [
+        (() => {
+            // main - play items, upgrades
+            outer: if(selected >= 0 && itemsLeft) {
+                if(hand2[selected] == "null") break outer;
+                console.log(hand2[selected])
+                if(hand2[selected] == "wardenHelmet") {
+                    clicked(2, "helmet")
+                    return;
+                }
+
+                let sdID = -1
+                let minSlot = 0
+                let replaceable = -1
+                for(const card in items2) {
+                    if(items2[card] == "silentDeath") sdID = card
+                    if(card == minSlot && items2[card] != "null") minSlot++
+                    if(items2[card] != "null") replaceable = card
+                }
+
+                if(hand2[selected] == "silentDeath") {
+                    if(replaceable >= 0) clicked(2, `item${replaceable}`)
+                    else clicked(2, "item0")
+                    return;
+                }
+                if(sdID >= 0) {
+                    clicked(2, `item${sdID}`);
+                    return;
+                }
+                if(minSlot < 3) {
+                    clicked(2, `item${minSlot}`);
+                    return;
+                }
+            }
+            if(itemsLeft) {
+                let ldID = -1
+                let sdID = -1
+                let gsID = -1
+                let whID = -1
+                for(const card in hand2) {
+                    if(hand2[card] == "lividDagger") ldID = card
+                    if(hand2[card] == "silentDeath") sdID = card
+                    if(hand2[card] == "giantsSword") gsID = card
+                    if(hand2[card] == "wardenHelmet") whID = card
+                }
+                if(whID >= 0) {
+                    selected = whID;
+                    return;
+                }
+                if(gsID >= 0) {
+                    selected = gsID;
+                    return;
+                }
+                if(ldID >= 0) {
+                    selected = ldID;
+                    return;
+                }
+                if(sdID >= 0) {
+                    selected = sdID;
+                    return;
+                }
+            }
+            if(upgradesLeft) {
+                for(const card in hand2) {
+                    if(hand2[card] == "helpFromTheAbove") {
+                        clicked(2, `hand${card}`)
+                        return;
+                    }
+                }
+            }
+            nextPhase()
+        }),
+        (() => {
+            if(attackingItemSlot >= 0) {
+                nextPhase()
+                return;
+            } else {
+                let sdID = -1
+                let gsID = -1
+                let ldID = -1
+                for(const card in items2) {
+                    if(items2[card] == "silentDeath") sdID = card
+                    if(items2[card] == "giantsSword") gsID = card
+                    if(items2[card] == "lividDagger") ldID = card
+                }
+
+                if(sdID >= 0 && silentDeathBuff) {
+                    clicked(2, `item${sdID}`);
+                    return;
+                }
+                if(ldID >= 0 && (sdID || gsID)) {
+                    clicked(2, `item${ldID}`);
+                    return;
+                }
+                if(gsID >= 0) {
+                    clicked(2, `item${gsID}`);
+                    return;
+                }
+                if(ldID >= 0) {
+                    clicked(2, `item${ldID}`);
+                    return;
+                }
+                if(sdID >= 0) {
+                    clicked(2, `item${sdID}`);
+                    return;
+                }
+            }
+
+            nextPhase()
+        }),
+        (() => {
+            // blocks
+            nextPhase()
+        }),
+        (() => {
+            // effect - play consumables, abilities
+            if(items2[attackingItemSlot] == "lividDagger") {
+                for(const card in items2) {
+                    if(items2[card] == "giantsSword") {
+                        clicked(2, `item${attackingItemSlot}`)
+                        return;
+                    }
+                }
+            }
+
+            if(consumablesLeft) {
+                let wohID = -1;
+                for(const card in hand2) {
+                    if(hand2[card] == "steakStake") {
+                        if(health1 < 40) {
+                            clicked(2, `hand${card}`)
+                            return;
+                        }
+                    } else if(hand2[card] == "wandOfHealing") {
+                        wohID = card;
+                    }
+                }
+                if(health2 <= 160) {
+                    clicked(2, `hand${wohID}`)
+                }
+            }
+            
+
+            nextPhase()
+        })
+    ]
+}
+
 let width = visualViewport.width
 let height = visualViewport.height
 
@@ -99,17 +252,20 @@ let tileWidth = Math.floor(Math.min(width, height) / 10)
 
 
 let stuff = document.location.hash
-if(stuff.substring(0, 5) != "#play") throw "";
+if(stuff.substring(0, 5) != "#play") throw undefined;
 
 let nextPhaseButton = document.createElement("div")
 nextPhaseButton.classList.add("nextPhaseButton")
-nextPhaseButton.ondblclick = (() => {nextPhase()})
+nextPhaseButton.ondblclick = (() => {tryNextPhase()})
 body.appendChild(nextPhaseButton)
 
-// let argString = stuff.substring(6)
-// argString = argString.replaceAll("%22", "\"")
-// console.log(argString)
-// let args = JSON.parse(argString)
+let argString = stuff.substring(6)
+argString = argString.replaceAll("%22", "\"")
+console.log(argString)
+let args = JSON.parse(argString)
+
+let botMatch = false
+if(args.boss) botMatch = true
 
 let itemCardStats = {
     "zombieSword": [10, 10],
@@ -142,10 +298,13 @@ let fero1 = 0
 let fero2 = 0
 
 let deck1 = JSON.parse(localStorage.getItem("deck1")).cards
-let deck2 = JSON.parse(localStorage.getItem("deck2")).cards
+let deck2
+if(botMatch) {
+    deck2 = botDecks[args.boss]
+} else {
+    deck2 = JSON.parse(localStorage.getItem("deck2")).cards
+}
 
-// deck1 = args.deck1
-// deck2 = args.deck2
 
 let upgrades1 = []
 let upgrades2 = []
@@ -217,7 +376,7 @@ for(let i = 0; i < 3; i++) {
     ref.style.top = height / 2 - 2.25 * tileWidth + 1.10 * tileWidth * i
     ref.style.left = width / 1.5 - 0.50 * tileWidth
     ref.onclick = (() => {infoBox.innerText = cardDescriptions[items2[j]]})
-    ref.ondblclick = (() => {clicked(2, `item${i}`)})
+    if(!botMatch) ref.ondblclick = (() => {clicked(2, `item${i}`)})
 
     p2board.appendChild(ref)
     itemDisplays2[itemDisplays2.length] = ref
@@ -229,7 +388,7 @@ helmetDisplay2.style.top = height / 2 + 1.25 * tileWidth
 helmetDisplay2.style.left = width / 1.5 - 0.5 * tileWidth
 
 helmetDisplay2.onclick = (() => {infoBox.innerText = cardDescriptions[helmet2]})
-helmetDisplay2.ondblclick = (() => {clicked(2, `helmet`)})
+helmetDisplay2.ondblclick = (() => {if(!botMatch) clicked(2, `helmet`)})
 p2board.appendChild(helmetDisplay2)
 
 
@@ -331,7 +490,7 @@ function clicked(player, slot) {
                     displayHand(1)
                 }
                 if(item == "steakStake") {
-                    if(health2 < 40) damage(1, 1000)
+                    if(health2 < 40) damage(2, 1000)
                     consumablesLeft--
                     hand1[id] = "null"
                     displayHand(1)
@@ -356,13 +515,18 @@ function clicked(player, slot) {
                     if(item == "witherImpact") ability(1, 125, (() => {damage(1, -20), damage(2, 30 + damageModifier)}))
                     if(item == "implosion") ability(1, 125, (() => {damage(2, 30 + damageModifier)}))
                     if(item == "midasStaff") ability(1, 150, (() => {damage(2, 45 + damageModifier)}))
-                    if(item == "witherShield") ability(1, 120, (() => {damage(1, -20)}))
+                    if(item == "witherShield") ability(1, 120, (() => {damage(1, -25)}))
                     if(item == "yetiSword") ability(1, 120, (() => {damage(2, 15 + damageModifier)}))
                     if(item == "atomsplitKatana") ability(1, 120, (() => {fero1 += 40}))
+                    if(item == "lividDagger") {
+                        ability(1, 0, (() => {damage(2, 20 + damageModifier)}))
+                        items1[id] = "null"
+                        itemDisplays1[id].innerText = ""
+                    }
                 }
             }
         }
-    } else if(activePlayer == 2) {
+    } else if(player == 2 && activePlayer == 2) {
         if(phase == 1) {
             if(slot.substring(0, 4) == "hand") {
                 let id = Number.parseInt(slot.substring(4, 5));
@@ -464,9 +628,14 @@ function clicked(player, slot) {
                     if(item == "witherImpact") ability(2, 125, (() => {damage(2, -20), damage(1, 30 + damageModifier)}))
                     if(item == "implosion") ability(2, 125, (() => {damage(1, 30 + damageModifier)}))
                     if(item == "midasStaff") ability(2, 150, (() => {damage(1, 45 + damageModifier)}))
-                    if(item == "witherShield") ability(2, 120, (() => {damage(2, -20)}))
+                    if(item == "witherShield") ability(2, 120, (() => {damage(2, -25)}))
                     if(item == "yetiSword") ability(2, 120, (() => {damage(1, 15 + damageModifier)}))
                     if(item == "atomsplitKatana") ability(2, 120, (() => {fero2 += 40}))
+                    if(item == "lividDagger") {
+                        ability(2, 0, (() => {damage(1, 20 + damageModifier)}))
+                        items2[id] = "null"
+                        itemDisplays2[id].innerText = ""
+                    }
                 }
             }
         }
@@ -562,14 +731,14 @@ function displayHand(player) {
             let card = hand2[i]
             if(card == "null") continue;
             let ref = document.createElement("div")
-            ref.innerText = cardNames[card]
+            ref.innerText = (botMatch ? "\n???" : cardNames[card])
             ref.style.top = y;
             ref.style.left = width - 1.10 * tileWidth
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p2hand")
             ref.onclick = (() => {infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(2, `hand${index}`)})
+            ref.ondblclick = (() => {if(!botMatch) clicked(2, `hand${index}`)})
             p2board.appendChild(ref)
         }
     }
@@ -718,7 +887,7 @@ function nextPhase() {
                 fero1 -= 100
                 currentDamage *= 2
             }
-            if(fero2 >= 100 && activePlayer == 1) {
+            if(fero2 >= 100 && activePlayer == 2) {
                 fero2 -= 100
                 currentDamage *= 2
             }
@@ -796,6 +965,36 @@ function nextPhase() {
     }
     nextPhaseButton.innerText = `Next Phase\nCurrently ${phase}\nActive Player: ${activePlayer}`
 }
+
+function tryNextPhase() {
+    if(!botMatch) nextPhase()
+    else {
+        let effectiveActivePlayer = phase == 3 ? 3 - activePlayer : activePlayer
+        if(effectiveActivePlayer == 1) nextPhase()
+    }
+}
+
+setInterval(() => {
+    let effectiveActivePlayer = phase == 3 ? 3 - activePlayer : activePlayer
+    if(botMatch && effectiveActivePlayer == 2) {
+        if(phase == 4) {
+            botLogic[args.boss][3]()
+            return;
+        }
+        if(phase == 3) {
+            botLogic[args.boss][2]()
+            return;
+        }
+        if(phase == 2) {
+            botLogic[args.boss][1]()
+            return;
+        }
+        if(phase == 1) {
+            botLogic[args.boss][0]()
+            return;
+        }
+    }
+}, 1000)
 
 nextPhaseButton.innerText = `Next Phase\nCurrently ${phase}\nActive Player: ${activePlayer}`
 
