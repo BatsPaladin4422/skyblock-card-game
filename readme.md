@@ -13,9 +13,9 @@ Double-Click an Upgrade in hand: equip that upgrade. Upgrades are permanent buff
 
 Double-Click an Item in hand: select that item
 
-    If it is a Helmet, double-click the slot that is further away from the other 3. This equips it. That's also a permanent buff (once per turn)
+If it is a Helmet, double-click the bottom slot. This equips it. That's also a permanent buff (once per turn)
 
-    Otherwise, double-click one of the three slots that are closer to each other to equip the item. You attack with those items
+Otherwise, double-click one of the top three slots to equip the item. You attack with those items
 
 (once per turn)
 
