@@ -15,9 +15,9 @@ Left-Click an Upgrade in hand - equip that upgrade. Upgrades are *permanent buff
 
 Left-Click an Item in hand - select that item:
 
-If it is a Helmet, left-click the **bottom** slot. This equips it. That's also a *permanent buff*
+> Then if it is a Helmet, left-click the **bottom** slot. This equips it. That's also a *permanent buff*
 
-Otherwise, left-click one of the **top three** slots to equip the item. You *attack* with those items and use their *abilities* if they have any
+> Otherwise, left-click one of the **top three** slots to equip the item. You *attack* with those items and use their *abilities* if they have any
 
 (once per turn)
 
