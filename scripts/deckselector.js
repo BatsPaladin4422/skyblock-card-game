@@ -84,16 +84,18 @@ try {
     }
 }
 
-let backButton = document.createElement("div")
+{
+    let backButton = document.createElement("div")
 
-backButton.classList.add("saveDeckButton")
+    backButton.classList.add("saveDeckButton")
 
-backButton.innerText = "\nMain Menu"
+    backButton.innerText = "\nMain Menu"
 
-backButton.onclick = (() => {
-    let url = document.URL
-    url = url.substring(0, url.length - stuff.length)
-    window.location.href = url
-})
+    backButton.onclick = (() => {
+        let url = document.URL
+        url = url.substring(0, url.length - stuff.length)
+        window.location.href = url
+    })
 
-body.appendChild(backButton)
+    body.appendChild(backButton)
+}

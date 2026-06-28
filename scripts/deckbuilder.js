@@ -10,8 +10,8 @@ try {
     deck = []
 }
 let deckSize = deck.length
-let twoOffs = ["scarfsStudies","bigBrain","handyBloodChalice","helpFromTheAbove","manaPool","archer","berserk","healer","mage","tank"]
-let unimplemented = ["bouncyArrow","flintArrow","glueArrow","lethality","firstStrike","jujuShortbow","terminator","bigBrain","archer","healer","tank","mosquitoShortbow","scavenger","tacticalInsertion","spiritMask","swordOfBadHealth"]
+let twoOffs = ["bigBrain","handyBloodChalice","helpFromTheAbove","manaPool","archer","berserk","healer","mage","tank","flintArrow"]
+let unimplemented = ["lethality","firstStrike","terminator","bigBrain","healer","tank","tacticalInsertion","spiritMask"]
 
 infoBox.style.left = 0.10 * tileWidth
 infoBox.style.top = 0.10 * tileWidth
