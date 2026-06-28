@@ -634,6 +634,7 @@ function clicked(player, slot) {
                     phase = 0
                     draw(1)
                     nextPhase()
+                    displayHand(1)
                     displayDiscards(1)
                 }
             }
@@ -1299,11 +1300,19 @@ function nextPhase() {
     if(phase == "archer") return;
     phase++;
     if(phase == glueArrow) {
+        console.log(phase)
         glueArrow = -1
+        if(phase == 2) phase = 3
         return nextPhase()
     }
     if(firstTurn) phase = 5;
     if(phase == 1) {
+        swordOfBadHealthed = false
+        arrowEffects = ""
+        damageEffects = ""
+        attackingItemSlot = -1
+        currentDamage = 0
+
         itemsLeft = 1;
         upgradesLeft = 1;
         consumablesLeft = 1;

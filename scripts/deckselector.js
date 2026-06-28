@@ -31,7 +31,7 @@ try {
         ref.style.left = x
         body.appendChild(ref)
         if(type == "deck1") {
-            ref.ondblclick = (() => {
+            ref.onclick = (() => {
                 localStorage.setItem("deck1", JSON.stringify(JSON.parse(localStorage.getItem("allDecks"))[duplicate]))
                 let url = document.URL
                 url = url.substring(0, url.length - stuff.length)
@@ -39,7 +39,7 @@ try {
                 window.location.reload()
             })
         } else if (type == "deck2") {
-            ref.ondblclick = (() => {
+            ref.onclick = (() => {
                 localStorage.setItem("deck2", JSON.stringify(JSON.parse(localStorage.getItem("allDecks"))[duplicate]))
                 let url = document.URL
                 url = url.substring(0, url.length - stuff.length)
@@ -47,14 +47,14 @@ try {
                 window.location.reload()
             })
         } else if (type.substring(0, 3) == "bot") {
-            ref.ondblclick = (() => {
+            ref.onclick = (() => {
                 localStorage.setItem("deck1", JSON.stringify(JSON.parse(localStorage.getItem("allDecks"))[duplicate]))
                 let url = document.URL
                 url = url.substring(0, url.length - stuff.length)
                 window.location.href = url + `#play-${type.substring(4)}`
                 window.location.reload()
             })
-        } else ref.ondblclick = (() => {
+        } else ref.onclick = (() => {
             let url = document.URL
             url = url.substring(0, url.length - stuff.length)
             window.location.href = url + `#builder-${duplicate}`
@@ -75,7 +75,7 @@ try {
         ref.style.top = y
         ref.style.left = x
         body.appendChild(ref)
-        ref.ondblclick = (() => {
+        ref.onclick = (() => {
             let url = document.URL
             url = url.substring(0, url.length - stuff.length)
             window.location.href = url + `#builder-${duplicate}`
