@@ -395,7 +395,7 @@ if(stuff.substring(0, 5) != "#play") throw undefined;
 
 let nextPhaseButton = document.createElement("div")
 nextPhaseButton.classList.add("nextPhaseButton")
-nextPhaseButton.ondblclick = (() => {tryNextPhase()})
+nextPhaseButton.onclick = (() => {tryNextPhase()})
 body.appendChild(nextPhaseButton)
 
 let args = {}
@@ -500,8 +500,8 @@ for(let i = 0; i < 3; i++) {
     ref.classList.add("tile")
     ref.style.top = height / 2 - 2.25 * tileWidth + 1.10 * tileWidth * i
     ref.style.left = width / 3 - 0.50 * tileWidth
-    ref.onclick = (() => {infoBox.innerText = cardDescriptions[items1[j]]})
-    ref.ondblclick = (() => {clicked(1, `item${i}`)})
+    ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[items1[j]]})
+    ref.onclick = (() => {clicked(1, `item${i}`)})
 
     p1board.appendChild(ref)
     itemDisplays1[itemDisplays1.length] = ref
@@ -512,8 +512,8 @@ helmetDisplay1.classList.add("tile")
 helmetDisplay1.style.top = height / 2 + 1.25 * tileWidth
 helmetDisplay1.style.left = width / 3 - 0.50 * tileWidth
 
-helmetDisplay1.onclick = (() => {infoBox.innerText = cardDescriptions[helmet1]})
-helmetDisplay1.ondblclick = (() => {clicked(1, `helmet`)})
+helmetDisplay1.onmouseover = (() => {infoBox.innerText = cardDescriptions[helmet1]})
+helmetDisplay1.onclick = (() => {clicked(1, `helmet`)})
 p1board.appendChild(helmetDisplay1)
 
 for(let i = 0; i < 3; i++) {
@@ -522,8 +522,8 @@ for(let i = 0; i < 3; i++) {
     ref.classList.add("tile")
     ref.style.top = height / 2 - 2.25 * tileWidth + 1.10 * tileWidth * i
     ref.style.left = width / 1.5 - 0.50 * tileWidth
-    ref.onclick = (() => {infoBox.innerText = cardDescriptions[items2[j]]})
-    if(!botMatch) ref.ondblclick = (() => {clicked(2, `item${i}`)})
+    ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[items2[j]]})
+    if(!botMatch) ref.onclick = (() => {clicked(2, `item${i}`)})
 
     p2board.appendChild(ref)
     itemDisplays2[itemDisplays2.length] = ref
@@ -534,8 +534,8 @@ helmetDisplay2.classList.add("tile")
 helmetDisplay2.style.top = height / 2 + 1.25 * tileWidth
 helmetDisplay2.style.left = width / 1.5 - 0.5 * tileWidth
 
-helmetDisplay2.onclick = (() => {infoBox.innerText = cardDescriptions[helmet2]})
-helmetDisplay2.ondblclick = (() => {clicked(2, `helmet`)})
+helmetDisplay2.onmouseover = (() => {infoBox.innerText = cardDescriptions[helmet2]})
+helmetDisplay2.onclick = (() => {clicked(2, `helmet`)})
 p2board.appendChild(helmetDisplay2)
 
 
@@ -642,8 +642,7 @@ function clicked(player, slot) {
         if(phase == 1) {
             if(slot.substring(0, 4) == "hand") {
                 let id = Number.parseInt(slot.substring(4));
-                if(selected == id) selected = -1;
-                else selected = id
+                selected = id
                 if(upgradesLeft <= 0) return;
                 if(upgradeCards.includes(hand1[id])) {
                     upgrades1[upgrades1.length] = hand1[id]
@@ -828,8 +827,7 @@ function clicked(player, slot) {
         if(phase == 1) {
             if(slot.substring(0, 4) == "hand") {
                 let id = Number.parseInt(slot.substring(4));
-                if(selected == id) selected = -1;
-                else selected = id
+                selected = id
                 if(upgradesLeft <= 0) return;
                 if(upgradeCards.includes(hand2[id])) {
                 console.log(hand2[id])
@@ -1073,8 +1071,8 @@ function displayHand(player) {
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p1hand")
-            ref.onclick = (() => {infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(1, `hand${index}`)})
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[card];})
+            ref.onclick = (() => {clicked(1, `hand${index}`)})
             p1board.appendChild(ref)
         }
     } else if(player == 2) {
@@ -1095,8 +1093,8 @@ function displayHand(player) {
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p2hand")
-            ref.onclick = (() => {if(!botMatch) infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(2, `hand${index}`)})
+            ref.onmouseover = (() => {if(!botMatch) infoBox.innerText = cardDescriptions[card];})
+            ref.onclick = (() => {clicked(2, `hand${index}`)})
             p2board.appendChild(ref)
         }
     }
@@ -1121,8 +1119,8 @@ function displayUpgrades(player) {
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p1upg")
-            ref.onclick = (() => {infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(1, `upgrade${index}`)})
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[card];})
+            ref.onclick = (() => {clicked(1, `upgrade${index}`)})
             p1board.appendChild(ref)
         }
     } else if(player == 2) {
@@ -1143,8 +1141,8 @@ function displayUpgrades(player) {
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p2upg")
-            ref.onclick = (() => {infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(2, `upgrade${index}`)})
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[card];})
+            ref.onclick = (() => {clicked(2, `upgrade${index}`)})
             p1board.appendChild(ref)
         }
     }
@@ -1169,8 +1167,8 @@ function displayDiscards(player) {
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p1discard")
-            ref.onclick = (() => {infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(1, `discard${index}`)})
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[card];})
+            ref.onclick = (() => {clicked(1, `discard${index}`)})
             p1board.appendChild(ref)
         }
     } else if(player == 2) {
@@ -1191,8 +1189,8 @@ function displayDiscards(player) {
             y += 1.10 * tileWidth
             ref.classList.add("tile")
             ref.classList.add("p2discard")
-            ref.onclick = (() => {infoBox.innerText = cardDescriptions[card];})
-            ref.ondblclick = (() => {clicked(2, `discard${index}`)})
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[card];})
+            ref.onclick = (() => {clicked(2, `discard${index}`)})
             p2board.appendChild(ref)
         }
     }
