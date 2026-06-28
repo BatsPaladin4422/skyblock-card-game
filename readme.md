@@ -24,7 +24,7 @@ Left-Click an Item in hand - select that item:
 When you're done, left-click next phase
 
 ### Phase 2 (Attacks)
-Left-Click a non-Helmet item to attack with it. The damage is equal to the D value in the description
+Left-Click a non-Helmet item to attack with it. The damage is equal to the **D value** in the description
 
 If it's a bow, select an arrow by left-clicking it in your hand.
 
@@ -33,7 +33,7 @@ When you're done, left-click next phase
 ### Phase 3 (Blocks)
 (you take this during the opponent's turn and vice versa)
 
-Left-Click a non-Helmet item to reduce damage taken by the B value. This **permanently** discards the item.
+Left-Click a non-Helmet item to reduce damage taken by the **B value**. This **permanently** discards the item.
 
 When you're done, left-click next phase
 

@@ -78,3 +78,12 @@ body {
     background-color: 3f3f3f;
     text-align: center;
 }
+
+a {
+    position: absolute;
+    text-align: right;
+    top: 98vh;
+    width: 99vw;
+    color: lightblue;
+    font-size: 1.5vmin;
+}
