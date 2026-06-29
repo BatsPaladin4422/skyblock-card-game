@@ -1,4 +1,4 @@
-## General Rules
+## Play Rules
 The first turn of the game skips phases 0, 2, 3 and 4.
 
 Hovering over items shows their description.
@@ -43,3 +43,11 @@ Left-Click the item you attacked with to use its ability if it has one.
 Left-Click any consumable in hand to use it. This discards it. (once per turn)
 
 When you're done, left-click next phase
+
+## Deckbuilding Rules
+A deck must have 8 cards.
+
+No more than 1 of the same card, unless it's an Upgrade, in which case you can have 2.
+
+Left-Click a card on the right to add it to your deck
+Left-Click a card on the left to remove it from your item.

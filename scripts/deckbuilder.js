@@ -11,7 +11,7 @@ try {
 }
 let deckSize = deck.length
 let twoOffs = ["bigBrain","handyBloodChalice","helpFromTheAbove","manaPool","archer","berserk","healer","mage","tank","flintArrow"]
-let unimplemented = ["lethality","firstStrike","terminator","bigBrain","healer","tank","tacticalInsertion","spiritMask"]
+let unimplemented = ["lethality","firstStrike","bigBrain","healer","tank","tacticalInsertion","spiritMask"]
 
 infoBox.style.left = 0.10 * tileWidth
 infoBox.style.top = 0.10 * tileWidth
@@ -46,7 +46,7 @@ body.appendChild(saveDeckButton)
         ref.style.top = y
         ref.style.left = x
         body.appendChild(ref)
-        ref.ondblclick = (() => {
+        ref.onclick = (() => {
             let current = 0
             for(card of deck) {
                 if(card == duplicate) current++;
@@ -59,7 +59,7 @@ body.appendChild(saveDeckButton)
             deck[deck.length] = duplicate
             displayDeck()
         })
-        ref.onclick = (() => {
+        ref.onmouseover = (() => {
             infoBox.innerText = cardDescriptions[duplicate]
         })
     }
@@ -89,10 +89,10 @@ function displayDeck() {
         ref.style.top = y
         ref.style.left = x
         body.appendChild(ref)
-        ref.onclick = (() => {
+        ref.onmouseover = (() => {
             infoBox.innerText = cardDescriptions[card]
         })
-        ref.ondblclick = (() => {
+        ref.onclick = (() => {
             deckSize--;
             deck[duplicate] = "null"
             displayDeck()

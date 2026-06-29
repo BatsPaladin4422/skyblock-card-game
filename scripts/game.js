@@ -1,4 +1,4 @@
-let cardNames = {
+const cardNames = {
     "bouncyArrow": "\nBouncy\nArrow",
     "flintArrow": "\nFlint\nArrow",
     "glueArrow": "\nGlue\nArrow",
@@ -43,11 +43,11 @@ let cardNames = {
     "mage": "\nMage",
     "tank": "\nTank"
 }
-let cardDescriptions = {
+const cardDescriptions = {
     "null": "",
     "bouncyArrow": "If not fully blocked, return\nany card to owner's hand\n\nArrow",
     "flintArrow": "+10 damage\nYou may have 2 Flint Arrows\nin your deck.\n\nArrow",
-    "glueArrow": "If not fully blocked, attacked\nplayer skips a random phase\nof their next turn\n\nArrow",
+    "glueArrow": "If not fully blocked, attacked\nplayer skips phase 1\nof their next turn\n\nArrow",
     "lethality": "Each player discards a card\n\nConsumable",
     "pocketEspressoMachine": "+150 Mana\n\nConsumable",
     "scavenger": "Return all your discarded consumables to hand\n\nConsumable",
@@ -61,12 +61,12 @@ let cardDescriptions = {
     "witherImpact": "Cost: Implosion, Shadow Warp,\nWither Shield\n0D 50B\n125 Mana: 30 AD, heal 20 Health\n\nFusion Item",
     "darkClaymore": "Cost: 3 Weapon cards\n35D 40B\nUpon fusing, +100 Ferocity\n\nFusion Item - Weapon",
     "implosion": "0D 10B\n125 Mana: 30 AD\n\nItem",
-    "midasStaff": "0D 10B\n150 Mana: 45 AD\n\nItem",
+    "midasStaff": "0D 10B\n150 Mana: 40 AD\n\nItem",
     "shadowWarp": "0D 30B\n\nItem",
     "witherShield": "0D 15B\n120 Mana: heal 25 Health\n\nItem",
     "jujuShortbow": "25D 0B\n\nItem - Bow",
     "mosquitoShortbow": "10D 0B\nAttacking heals for the amount\nof damage dealt\n\nItem - Bow",
-    "terminator": "15D 0B\nIf this attacks for the first\nor second time this turn, you\nmay have an additional Attack\nphase after this one. You may\nonly attack with Terminator during\nthat phase.\n\nBow",
+    "terminator": "15D 0B\nIf this attacks for the first\nor second time this turn, you\nmay have an additional Attack\nphase after this one. You may\nonly attack with Terminator during\nthat phase. This gains -5D until\nend of turn.\n\nBow",
     "skeletonHelmet": "On taking damage, prevent that\ndamage. Discard this card.\n\nItem - Helmet",
     "wardenHelmet": "+5 Damage\n\nItem - Helmet",
     "werewolfHelmet": "+5 Blocking to each item\nAttacking grants +25 ferocity\n\nItem - Helmet",
@@ -85,20 +85,22 @@ let cardDescriptions = {
     "manaPool": "+20 Mana\n\nUpgrade",
     "archer": "When 2 are equipped, at the\nstart of turn:\n•Return a discarded Arrow\n  to hand\n•Return all your Archer\n  upgrades to hand\n\nUpgrade - Class",
     "berserk": "When 2 are equipped, on attack:\n•Deal 2x Damage\n•Lose half your Health\n•Return all your Berserk\n  upgrades to hand\n\nUpgrade - Class",
-    "healer": "When 2 are equipped, on healing:\n•Heal half your missing Health\n•Return all your Healer\n  upgrades to hand\n\nUpgrade - Class",
+    "healer": "When 2 are equipped, on healing:\n•Heal a quarter of your missing Health\n•Return all your Healer\n  upgrades to hand\n\nUpgrade - Class",
     "mage": "When 2 are equipped, on ability:\n•Copy the ability\n•Return all your Mage\n  upgrades to hand\n\nUpgrade - Class",
     "tank": "When 2 are equipped, on blocks:\n•Double all blocks\n•If fully blocked, the attacking\n  Item is discarded\n•Return all your Tank\n  upgrades to hand\n\nUpgrade - Class"
 }
-let fusions = ["witherImpact","darkClaymore","scarfsStudies"]
-let bows = ["jujuShortbow","terminator","mosquitoShortbow"]
-let arrows = ["bouncyArrow","flintArrow","glueArrow"]
+const fusions = ["witherImpact","darkClaymore","scarfsStudies"]
+const bows = ["jujuShortbow","terminator","mosquitoShortbow"]
+const arrows = ["bouncyArrow","flintArrow","glueArrow"]
 
-let botDecks = {
+const botDecks = {
     "Livid": ["lividDagger","silentDeath","giantsSword","wardenHelmet","helpFromTheAbove","helpFromTheAbove","wandOfHealing","steakStake"],
-    "Mage Outlaw": ["manaPool","yetiSword","midasStaff","mage","mage","pocketEspressoMachine","witherGoggles","scorpionFoil"]
+    "Mage Outlaw": ["manaPool","yetiSword","midasStaff","mage","mage","pocketEspressoMachine","witherGoggles","scorpionFoil"],
+    "Bladesoul": ["wardenHelmet","swordOfBadHealth","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice"],
+    "Necron": ["valkyrie","swordOfBadHealth","steakStake","werewolfHelmet","handyBloodChalice","handyBloodChalice","berserk","berserk"]
 }
 
-let botLogic = {
+const botLogic = {
     "Livid": [
         (() => {
             // main - play items, upgrades
@@ -242,6 +244,9 @@ let botLogic = {
             
 
             nextPhase()
+        }),
+        (() => {
+            return true;
         })
     ],
     "Mage Outlaw": [
@@ -379,18 +384,260 @@ let botLogic = {
             }
 
             nextPhase()
+        }),
+        (() => {
+            let goodEarlyCards = 0
+            for(card of hand2) {
+                if(card == "scorpionFoil") goodEarlyCards++
+                if(card == "manaPool") goodEarlyCards++
+                if(card == "witherGoggles") goodEarlyCards++
+            }
+            return goodEarlyCards >= 1
+        })
+    ],
+    "Bladesoul": [
+        (() => {
+            outer: if(selected >= 0 && itemsLeft) {
+                if(hand2[selected] == "null") break outer;
+                if(hand2[selected] == "wardenHelmet") clicked(3, `helmet`)
+                if(hand2[selected] == "swordOfBadHealth") clicked(3, `item0`)
+            }
+            if(itemsLeft) {
+                let whID = -1
+                for(const card in hand2) {
+                    if(hand2[card] == "wardenHelmet") {
+                        whID = card
+                    } else if(hand2[card] == "swordOfBadHealth") {
+                        clicked(3, `hand${card}`)
+                        return;
+                    }
+                }
+                if(whID >= 0) {
+                    clicked(3, `hand${whID}`)
+                    return;
+                }
+            }
+            if(upgradesLeft) {
+                for(const card in hand2) {
+                    if(hand2[card] == "handyBloodChalice") {
+                        clicked(3, `hand${card}`)
+                        return;
+                    }
+                }
+            }
+            nextPhase()
+        }),
+        (() => {
+            if(items2.includes("swordOfBadHealth")) {
+                clicked(3, `item0`)
+            } else nextPhase()
+        }),
+        (() => {
+            nextPhase()
+        }),
+        (() => {
+            nextPhase()
+        }),
+        (() => {
+            return hand2.includes("swordOfBadHealth")
+        })
+    ],
+    "Necron": [
+        (() => {
+            outer: if(selected >= 0) {
+                if(hand2[selected] == "null") break outer;
+                if(hand2[selected] == "werewolfHelmet") {
+                    clicked(3, "helmet")
+                    return;
+                }
+
+                let sdID = -1
+                let minSlot = 0
+                let replaceable = -1
+                for(const card in items2) {
+                    if(items2[card] == "silentDeath") sdID = card
+                    if(card == minSlot && items2[card] != "null") minSlot++
+                    if(items2[card] != "null" && replaceable == -1) replaceable = card
+                    if(items2[card] == "swordOfBadHealth") replaceable = card
+                }
+
+                if(hand2[selected] == "silentDeath") {
+                    if(replaceable >= 0) clicked(3, `item${replaceable}`)
+                    else clicked(3, "item0")
+                    return;
+                }
+                if(sdID >= 0) {
+                    clicked(3, `item${sdID}`);
+                    return;
+                }
+                if(minSlot < 3) {
+                    clicked(3, `item${minSlot}`);
+                    return;
+                }
+            }
+            if(itemsLeft) {
+                let vID = -1
+                let sdID = -1
+                let whID = -1
+                let sobhID = -1
+                for(const card in hand2) {
+                    if(hand2[card] == "valkyrie") vID = card
+                    if(hand2[card] == "silentDeath") sdID = card
+                    if(hand2[card] == "werewolfHelmet") whID = card
+                    if(hand2[card] == "swordOfBadHealth") sobhID = card
+                }
+                let hasFero = (fero2 >= 100) || (fero2 >= 75 && helmet2 == "werewolfHelmet")
+                let hasValkyrieFero = (fero2 >= 70) || (fero2 >= 45 && helmet2 == "werewolfHelmet")
+
+                if(hasFero && sdID >= 0 && !items2.includes("swordOfBadHealth")) {
+                    clicked(3, `hand${sdID}`)
+                    return;
+                }
+                if(hasFero && sobhID >= 0) {
+                    clicked(3, `hand${sobhID}`)
+                    return;
+                }
+                if(!hasValkyrieFero && vID >= 0) {
+                    clicked(3, `hand${vID}`)
+                    return;
+                }
+                if(whID >= 0) {
+                    clicked(3, `hand${whID}`)
+                    return;
+                }
+                if(hasFero && sdID >= 0) {
+                    clicked(3, `hand${sdID}`)
+                    return;
+                }
+                if(vID >= 0) {
+                    clicked(3, `hand${vID}`)
+                    return;
+                }
+                if(sobhID >= 0) {
+                    clicked(3, `hand${sobhID}`)
+                    return;
+                }
+            }
+            if(upgradesLeft) {
+                let bersID = -1
+                let chaliceID = -1
+                let hasBers = upgrades2.includes("berserk")
+                for(const card in hand2) {
+                    if(hand2[card] == "berserk") bersID = card
+                    if(hand2[card] == "handyBloodChalice") chaliceID = card
+                }
+                let hasFero = (fero2 >= 100) || (fero2 >= 75 && helmet2 == "werewolfHelmet")
+                if(bersID >= 0 && hasBers && hasFero && (silentDeathBuff || items2.includes("swordOfBadHealth")) && (health2 < 140 || health1 < 140)) {
+                    clicked(3, `hand${bersID}`)
+                    return;
+                }
+                if(chaliceID >= 0) {
+                    clicked(3, `hand${chaliceID}`)
+                    return;
+                }
+                if(bersID >= 0 && !hasBers) {
+                    clicked(3, `hand${bersID}`)
+                    return;
+                }
+            }
+            nextPhase()
+        }),
+        (() => {
+            if(attackingItemSlot >= 0) {
+                if(items2[attackingItemSlot] == "swordOfBadHealth" && health2 > 10) {
+                    clicked(3, `item${attackingItemSlot}`)
+                    return;
+                } else {
+                    nextPhase()
+                    return;
+                }
+            }
+            let chalices = 0
+            for(card of upgrades2) {
+                if(card == "handyBloodChalice") chalices++
+            }
+            let nextTurnFero = chalices * 15 + fero2
+            let hasNextTurnFero = (nextTurnFero >= 100) || (nextTurnFero >= 75 && helmet2 == "werewolfHelmet")
+            let hasFero = (fero2 >= 100) || (fero2 >= 75 && helmet2 == "werewolfHelmet")
+            let hasValkyrieFero = (fero2 >= 70) || (fero2 >= 45 && helmet2 == "werewolfHelmet")
+
+            let sdID = -1
+            let vID = -1
+            let sobhID = -1
+
+            for(card in items2) {
+                if(items2[card] == "silentDeath") sdID = card
+                if(items2[card] == "valkyrie") vID = card
+                if(items2[card] == "swordOfBadHealth") sobhID = card
+            }
+
+            if(sdID >= 0 && hasFero) {
+                clicked(3, `item${sdID}`)
+                return;
+            }
+            if(sobhID >= 0 && hasFero) {
+                clicked(3, `item${sobhID}`)
+                return;
+            }
+            if(vID >= 0 && !hasValkyrieFero) {
+                clicked(3, `item${vID}`)
+                return;
+            }
+            if(sdID >= 0) {
+                clicked(3, `item${sdID}`)
+                return;
+            }
+            if(sobhID >= 0) {
+                clicked(3, `item${sobhID}`)
+                return;
+            }
+            if(vID >= 0 && !hasNextTurnFero) {
+                clicked(3, `item${vID}`)
+                return;
+            }
+            if(vID >= 0 && ((health1 < 80 && hand2.includes("steakStake")) || health1 <= 40)) {
+                clicked(3, `item${vID}`)
+                return;
+            }
+
+            nextPhase()
+        }),
+        (() => {
+            nextPhase()
+        }),
+        (() => {
+            if(consumablesLeft) {
+                for(const card in hand2) {
+                    if(hand2[card] == "steakStake") {
+                        if(health1 < 40) {
+                            clicked(3, `hand${card}`)
+                            return;
+                        }
+                    }
+                }
+            }
+
+            nextPhase()
+        }),
+        (() => {
+            let goodEarlyCards = 0
+            for(card of hand2) {
+                if(card == "valkyrie") goodEarlyCards++
+                if(card == "swordOfBadHealth") goodEarlyCards++
+            }
+            return goodEarlyCards >= 1
         })
     ]
 }
 
-let width = visualViewport.width
-let height = visualViewport.height
+const width = visualViewport.width
+const height = visualViewport.height
 
-let tileWidth = Math.floor(Math.min(width, height) / 10)
+const tileWidth = Math.floor(Math.min(width, height) / 10)
 
 
 
-let stuff = document.location.hash
+const stuff = document.location.hash
 if(stuff.substring(0, 5) != "#play") throw undefined;
 
 let nextPhaseButton = document.createElement("div")
@@ -444,7 +691,7 @@ let fero2 = 0
 let deck1 = JSON.parse(localStorage.getItem("deck1")).cards
 let deck2
 if(botMatch) {
-    deck2 = botDecks[args.boss]
+    deck2 = JSON.parse(JSON.stringify(botDecks[args.boss]))
 } else {
     deck2 = JSON.parse(localStorage.getItem("deck2")).cards
 }
@@ -476,6 +723,9 @@ let upgradesLeft = 1;
 let itemsLeft = 1;
 let consumablesLeft = 1;
 
+let p1Kept = false
+let p2Kept = false
+
 let selected = -1
 
 let itemDisplays1 = []
@@ -490,6 +740,8 @@ let glueArrow = -1
 
 let silentDeathBuff = false
 let swordOfBadHealthed = false
+
+let terminators = 0
 
 let discard1 = []
 let discard2 = []
@@ -523,7 +775,7 @@ for(let i = 0; i < 3; i++) {
     ref.style.top = height / 2 - 2.25 * tileWidth + 1.10 * tileWidth * i
     ref.style.left = width / 1.5 - 0.50 * tileWidth
     ref.onmouseover = (() => {infoBox.innerText = cardDescriptions[items2[j]]})
-    if(!botMatch) ref.onclick = (() => {clicked(2, `item${i}`)})
+    ref.onclick = (() => {clicked(2, `item${i}`)})
 
     p2board.appendChild(ref)
     itemDisplays2[itemDisplays2.length] = ref
@@ -538,8 +790,57 @@ helmetDisplay2.onmouseover = (() => {infoBox.innerText = cardDescriptions[helmet
 helmetDisplay2.onclick = (() => {clicked(2, `helmet`)})
 p2board.appendChild(helmetDisplay2)
 
+let rerollButton1 = document.createElement("div")
+rerollButton1.classList.add("tile")
+rerollButton1.style.top = 4.3 * tileWidth
+rerollButton1.style.left = 0.1 * tileWidth
+rerollButton1.innerText = "Reroll"
+rerollButton1.onmouseover = (() => {infoBox.innerText = "Pay 20 Health: reroll your hand\n(Only before playig card)"})
+rerollButton1.onclick = (() => {redeal(1)})
+body.appendChild(rerollButton1)
+
+let keepButton1 = document.createElement("div")
+keepButton1.classList.add("tile")
+keepButton1.style.top = 5.4 * tileWidth
+keepButton1.style.left = 0.1 * tileWidth
+keepButton1.innerText = "Keep"
+keepButton1.onclick = (() => {
+    p1Kept = true;
+    keepButton1.remove()
+    rerollButton1.remove()
+})
+body.appendChild(keepButton1)
+
+let rerollButton2 = document.createElement("div")
+if(botMatch) {
+    rerollButton2.remove()
+} else {
+    rerollButton2.classList.add("tile")
+    rerollButton2.style.top = 4.3 * tileWidth
+    rerollButton2.style.left = width - 1.1 * tileWidth
+    rerollButton2.innerText = "Reroll"
+    rerollButton2.onmouseover = (() => {infoBox.innerText = "Pay 20 Health: reroll your hand\n(Only before playig card)"})
+    rerollButton2.onclick = (() => {redeal(2)})
+    body.appendChild(rerollButton2)
+
+    let keepButton2 = document.createElement("div")
+    keepButton2.classList.add("tile")
+    keepButton2.style.top = 5.4 * tileWidth
+    keepButton2.style.left = width - 1.1 * tileWidth
+    keepButton2.innerText = "Keep"
+    keepButton2.onclick = (() => {
+        p2Kept = true;
+        keepButton2.remove()
+        rerollButton2.remove()
+    })
+    body.appendChild(keepButton2)
+}
+
+
+
 
 function clicked(player, slot) {
+    if (!(p1Kept && p2Kept)) return;
     if(phase == "bouncyArrow") {
         if(botMatch && activePlayer == 2 && player <= 2) return;
         if(botMatch && activePlayer == 2) player -= 3
@@ -568,6 +869,13 @@ function clicked(player, slot) {
             displayUpgrades(1);
 
             phase = 4;
+            if(damageEffects == "terminator") {
+                terminators++
+                if(terminators <= 2) {
+                    phase = 1;
+                    nextPhase()
+                }
+            }
             nextPhaseButton.innerText = `Next Phase\nCurrently ${phase}\nActive Player: ${activePlayer}`
         } else if (player == 2) {
             if(slot.substring(0, 4) == "hand") return;
@@ -593,7 +901,14 @@ function clicked(player, slot) {
             displayDiscards(2);
             displayUpgrades(2);
 
-            phase = 4
+            phase = 4;
+            if(damageEffects == "terminator") {
+                terminators++
+                if(terminators <= 2) {
+                    phase = 1;
+                    nextPhase()
+                }
+            }
             nextPhaseButton.innerText = `Next Phase\nCurrently ${phase}\nActive Player: ${activePlayer}`
         }
     }
@@ -684,8 +999,10 @@ function clicked(player, slot) {
             if(slot.substring(0, 4) == "item") {
                 let id = Number.parseInt(slot.substring(4));
                 if(items1[id] != "null") {
+                    if(terminators >= 1 && items1[id] != "terminator") return;
                     let stats = itemCardStats[items1[id]]
                     currentDamage = stats[0]
+                    currentDamage -= terminators * 5
                     if(helmet1 == "wardenHelmet") currentDamage += 5
                     if(silentDeathBuff && items1[id] == "silentDeath") currentDamage += 15
                     if(id == attackingItemSlot && items1[id] == "swordOfBadHealth" && !swordOfBadHealthed) {
@@ -697,6 +1014,7 @@ function clicked(player, slot) {
                     damageEffects = ""
                     attackingItemSlot = id
                     if(items1[id] == "zombieSword" || items1[id] == "mosquitoShortbow") damageEffects = "heal"
+                    if(items1[id] == "terminator") damageEffects = "terminator"
                     attackInfo.innerText = `Damage: ${currentDamage}\nUsing: ${cardNames[activePlayer == 1 ? items1[attackingItemSlot] : items2[attackingItemSlot]]}`
                     if(bows.includes(items1[id])) {
                         for(card of hand1) {
@@ -795,7 +1113,7 @@ function clicked(player, slot) {
                     
                     if(item == "witherImpact") ability(1, 125, (() => {damage(1, -20), damage(2, 30 + damageModifier)}))
                     if(item == "implosion") ability(1, 125, (() => {damage(2, 30 + damageModifier)}))
-                    if(item == "midasStaff") ability(1, 150, (() => {damage(2, 45 + damageModifier)}))
+                    if(item == "midasStaff") ability(1, 150, (() => {damage(2, 40 + damageModifier)}))
                     if(item == "witherShield") ability(1, 120, (() => {damage(1, -25)}))
                     if(item == "yetiSword") ability(1, 120, (() => {damage(2, 15 + damageModifier)}))
                     if(item == "atomsplitKatana") ability(1, 120, (() => {fero1 += 40}))
@@ -870,8 +1188,10 @@ function clicked(player, slot) {
             if(slot.substring(0, 4) == "item") {
                 let id = Number.parseInt(slot.substring(4));
                 if(items2[id] != "null") {
+                    if(terminators >= 1 && items2[id] != "terminator") return;
                     let stats = itemCardStats[items2[id]]
                     currentDamage = stats[0]
+                    currentDamage -= terminators * 5
                     if(helmet2 == "wardenHelmet") currentDamage += 5
                     if(silentDeathBuff && items2[id] == "silentDeath") currentDamage += 15
                     if(id == attackingItemSlot && items2[id] == "swordOfBadHealth" && !swordOfBadHealthed) {
@@ -883,6 +1203,7 @@ function clicked(player, slot) {
                     damageEffects = ""
                     attackingItemSlot = id
                     if(items2[id] == "zombieSword" || items2[id] == "mosquitoShortbow") damageEffects = "heal"
+                    if(items2[id] == "terminator") damageEffects = "terminator"
                     attackInfo.innerText = `Damage: ${currentDamage}\nUsing: ${cardNames[activePlayer == 1 ? items1[attackingItemSlot] : items2[attackingItemSlot]]}`
                     if(bows.includes(items2[id])) {
                         for(card of hand2) {
@@ -981,7 +1302,7 @@ function clicked(player, slot) {
                     
                     if(item == "witherImpact") ability(2, 125, (() => {damage(2, -20), damage(1, 30 + damageModifier)}))
                     if(item == "implosion") ability(2, 125, (() => {damage(1, 30 + damageModifier)}))
-                    if(item == "midasStaff") ability(2, 150, (() => {damage(1, 45 + damageModifier)}))
+                    if(item == "midasStaff") ability(2, 150, (() => {damage(1, 40 + damageModifier)}))
                     if(item == "witherShield") ability(2, 120, (() => {damage(2, -25)}))
                     if(item == "yetiSword") ability(2, 120, (() => {damage(1, 15 + damageModifier)}))
                     if(item == "atomsplitKatana") ability(2, 120, (() => {fero2 += 40}))
@@ -1293,6 +1614,7 @@ function draw(player) {
 }
 
 function nextPhase() {
+    if (!(p1Kept && p2Kept)) return;
     if(phase == "arrowChoice") return;
     if(phase == "bouncyArrow") return;
     if(phase == "archer") return;
@@ -1305,6 +1627,7 @@ function nextPhase() {
     }
     if(firstTurn) phase = 5;
     if(phase == 1) {
+        terminators = 0
         swordOfBadHealthed = false
         arrowEffects = ""
         damageEffects = ""
@@ -1381,20 +1704,29 @@ function nextPhase() {
     if(phase == 4) {
         damage(3 - activePlayer, Math.max(0, currentDamage - currentBlocks))
         silentDeathBuff = false
+        if(damageEffects == "heal") damage(activePlayer, -Math.max(0, currentDamage - currentBlocks))
         if(currentDamage - currentBlocks >= 0) {
             if(arrowEffects == "bouncy") {
                 phase = "bouncyArrow"
                 nextPhaseButton.innerText = `Next Phase\nCurrently ${phase}\nActive Player: ${activePlayer}`
+                return;
             }
             if(arrowEffects == "glue") {
-                glueArrow = Math.floor(4 * Math.random())
+                glueArrow = 1
                 if(glueArrow == 3) glueArrow++
             }
         }
-        if(damageEffects == "heal") damage(activePlayer, -Math.max(0, currentDamage - currentBlocks))
+        if(damageEffects == "terminator") {
+            terminators++
+            if(terminators <= 2) {
+                phase = 1;
+                nextPhase()
+            }
+        }
         attackInfo.innerText = ``
     }
     if(phase == 5) {
+        terminators = 0
         firstTurn = false;
         activePlayer = 3 - activePlayer
         phase = 0
@@ -1477,9 +1809,40 @@ function tryNextPhase() {
     }
 }
 
+function redeal(player) {
+    damage(player, 20)
+    if(player == 1) {
+        hand1 = []
+        deck1 = JSON.parse(localStorage.getItem("deck1")).cards
+        deckSize1 = deck1.length
+        draw(1)
+        draw(1)
+        draw(1)
+    } else {
+        hand2 = []
+        if(botMatch) {
+            deck2 = JSON.parse(JSON.stringify(botDecks[args.boss]))
+            console.log(deck2)
+        } else {
+            deck2 = JSON.parse(localStorage.getItem("deck2")).cards
+        }
+        deckSize2 = deck2.length
+        draw(2)
+        draw(2)
+        draw(2)
+    }
+}
+
 
 setInterval(() => {
     let effectiveActivePlayer = phase == 3 ? 3 - activePlayer : activePlayer
+    if(botMatch && !p2Kept) {
+        if(botLogic[args.boss][4]()) {
+            p2Kept = true
+        } else {
+            redeal(2)
+        }
+    }
     if(botMatch && effectiveActivePlayer == 2) {
         if(phase == 4) {
             botLogic[args.boss][3]()
