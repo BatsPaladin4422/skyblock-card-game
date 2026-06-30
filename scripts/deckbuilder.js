@@ -28,6 +28,17 @@ saveDeckButton.onclick = (() => {
 
 body.appendChild(saveDeckButton)
 
+let nameField = document.createElement("input")
+nameField.type = "text"
+nameField.style.top = height - tileWidth * 1.5
+nameField.style.left = 0.1 * tileWidth
+try {
+    nameField.value = (JSON.parse(localStorage.getItem("allDecks")))[modifyingDeckID].name ?? `Deck ${modifyingDeckID}`
+} catch {
+    nameField.value = `Deck ${modifyingDeckID}`
+}
+body.appendChild(nameField)
+
 {
     let x = width / 2 - 1.10 * tileWidth;
     let y = 0.10 * tileWidth;
@@ -108,6 +119,7 @@ function saveDeck() {
     let allDecks = JSON.parse(localStorage.getItem("allDecks"))
 
     let savedDeck = {
+        name: nameField.value,
         cards: [],
         size: deckSize
     }

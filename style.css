@@ -87,3 +87,12 @@ a {
     color: lightblue;
     font-size: 1.5vmin;
 }
+
+input {
+    border: none;
+    position: absolute;
+    text-align: left;
+    background-color: 3f3f3f;
+    font-size: 2vmin;
+    color: white;
+}

@@ -97,7 +97,8 @@ const botDecks = {
     "Livid": ["lividDagger","silentDeath","giantsSword","wardenHelmet","helpFromTheAbove","helpFromTheAbove","wandOfHealing","steakStake"],
     "Mage Outlaw": ["manaPool","yetiSword","midasStaff","mage","mage","pocketEspressoMachine","witherGoggles","scorpionFoil"],
     "Bladesoul": ["wardenHelmet","swordOfBadHealth","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice"],
-    "Necron": ["valkyrie","swordOfBadHealth","steakStake","werewolfHelmet","handyBloodChalice","handyBloodChalice","berserk","berserk"]
+    "Necron": ["valkyrie","swordOfBadHealth","steakStake","werewolfHelmet","handyBloodChalice","handyBloodChalice","berserk","berserk"],
+    "Storm": ["witherShield","shadowWarp","implosion","witherGoggles","mage","mage","helpFromTheAbove","helpFromTheAbove"]
 }
 
 const botLogic = {
@@ -627,6 +628,141 @@ const botLogic = {
             }
             return goodEarlyCards >= 1
         })
+    ],
+    "Storm": [
+        (() => {
+            outer: if(selected >= 0 && itemsLeft) {
+                if(hand2[selected] == "null") break outer;
+                if(hand2[selected] == "witherGoggles") {
+                    clicked(3, "helmet")
+                    return;
+                }
+
+                let minSlot = 0
+                for(const card in items2) {
+                    if(card == minSlot && items2[card] != "null") minSlot++
+                }
+
+                if(minSlot < 3) {
+                    clicked(3, `item${minSlot}`);
+                    return;
+                }
+            }
+            if(itemsLeft) {
+
+                let wgID = -1
+                let wsID = -1
+                let swID = -1
+                let iID = -1
+                let wiID = -1
+                for(card in hand2) {
+                    if(hand2[card] == "witherGoggles") wgID = card;
+                    if(hand2[card] == "witherShield") wsID = card;
+                    if(hand2[card] == "witherImpact") wiID = card;
+                    if(hand2[card] == "shadowWarp") swID = card;
+                    if(hand2[card] == "implosion") iID = card;
+                }
+
+                if(wgID >= 0) {
+                    clicked(3, `hand${wgID}`)
+                    return
+                }
+                if(items2.includes("witherShield") && items2.includes("implosion") && items2.includes("shadowWarp")) {
+                    clicked(3, "fusion:wi")
+                    return;
+                }
+                if(wiID >= 0) {
+                    clicked(3, `hand${wiID}`)
+                    return
+                }
+                if(wsID >= 0) {
+                    clicked(3, `hand${wsID}`)
+                    return
+                }
+                if(iID >= 0) {
+                    clicked(3, `hand${iID}`)
+                    return
+                }
+                if(swID >= 0) {
+                    clicked(3, `hand${swID}`)
+                    return
+                }
+            }
+            if(upgradesLeft) {
+                let mageID = -1
+                let hftaID = -1
+                for(const card in hand2) {
+                    if(hand2[card] == "helpFromTheAbove") {
+                        hftaID = card;
+                    } else if(hand2[card] == "mage") {
+                        mageID = card;
+                    }
+                }
+                if(mageID >= 0 && items2.includes("witherImpact")) {
+                    clicked(3, `hand${mageID}`)
+                    return;
+                }
+                if(hftaID >= 0) {
+                    clicked(3, `hand${hftaID}`)
+                    return;
+                }
+                if(mageID >= 0 && !upgrades2.includes("mage")) {
+                    clicked(3, `hand${mageID}`)
+                    return;
+                }
+            }
+
+            nextPhase()
+        }),
+        (() => {
+            if(attackingItemSlot >= 0) nextPhase()
+
+            let wiID = -1
+            let wsID = -1
+            let iID = -1
+
+            for(card in items2) {
+                if(items2[card] == "witherImpact") wiID = card
+                if(items2[card] == "witherShield") wsID = card
+                if(items2[card] == "implosion") iID = card
+            }
+
+            if(wiID >= 0) {
+                clicked(3, `item${wiID}`)
+            }
+            if(wsID >= 0 && health2 <= 175) {
+                clicked(3, `item${wsID}`)
+            }
+            if(iID >= 0) {
+                clicked(3, `item${iID}`)
+            }
+            if(wsID >= 0) {
+                clicked(3, `item${wsID}`)
+            }
+
+            nextPhase()
+        }),
+        (() => {
+            nextPhase()
+        }),
+        (() => {
+            if(attackingItemSlot >= 0 && items2[attackingItemSlot] != "null" && mana2 >= 120) {
+                clicked(3, `item${attackingItemSlot}`)
+                return;
+            }
+
+            nextPhase()
+        }),
+        (() => {
+            let goodEarlyCards = 0
+            for(card of hand2) {
+                if(card == "implosion") goodEarlyCards++
+                if(card == "witherShield") goodEarlyCards++
+                if(card == "shadowWarp") goodEarlyCards++
+                if(card == "witherGoggles") goodEarlyCards++
+            }
+            return goodEarlyCards >= 1
+        })
     ]
 }
 
@@ -795,7 +931,7 @@ rerollButton1.classList.add("tile")
 rerollButton1.style.top = 4.3 * tileWidth
 rerollButton1.style.left = 0.1 * tileWidth
 rerollButton1.innerText = "Reroll"
-rerollButton1.onmouseover = (() => {infoBox.innerText = "Pay 20 Health: reroll your hand\n(Only before playig card)"})
+rerollButton1.onmouseover = (() => {infoBox.innerText = "Pay 20 Health: reroll your hand\n(Before playing cards)"})
 rerollButton1.onclick = (() => {redeal(1)})
 body.appendChild(rerollButton1)
 
@@ -864,9 +1000,7 @@ function clicked(player, slot) {
                 hand1[hand1.length] = upgrades1[id]
                 upgrades1[id] = "null"
             }
-            displayHand(1);
-            displayDiscards(1);
-            displayUpgrades(1);
+            display(1);
 
             phase = 4;
             if(damageEffects == "terminator") {
@@ -897,9 +1031,7 @@ function clicked(player, slot) {
                 hand2[hand2.length] = upgrades2[id]
                 upgrades2[id] = "null"
             }
-            displayHand(2);
-            displayDiscards(2);
-            displayUpgrades(2);
+            display(2);
 
             phase = 4;
             if(damageEffects == "terminator") {
@@ -923,7 +1055,7 @@ function clicked(player, slot) {
             attackInfo.innerText = `Damage: ${currentDamage}\nUsing: ${cardNames[activePlayer == 1 ? items1[attackingItemSlot] : items2[attackingItemSlot]]}\nBlocks: ${currentBlocks}`
 
             discard1[discard1.length] = items1[id]
-            displayDiscards()
+            display()
             items1[id] = "null"
             itemDisplays1[id].innerText = ""
         } else if(items2[id] != "null") {
@@ -933,7 +1065,7 @@ function clicked(player, slot) {
             attackInfo.innerText = `Damage: ${currentDamage}\nUsing: ${cardNames[activePlayer == 1 ? items1[attackingItemSlot] : items2[attackingItemSlot]]}\nBlocks: ${currentBlocks}`
 
             discard2[discard2.length] = items2[id]
-            displayDiscards()
+            display()
             items2[id] = "null"
             itemDisplays2[id].innerText = ""
         }
@@ -949,8 +1081,7 @@ function clicked(player, slot) {
                     phase = 0
                     draw(1)
                     nextPhase()
-                    displayHand(1)
-                    displayDiscards(1)
+                    display(1)
                 }
             }
         }
@@ -963,8 +1094,7 @@ function clicked(player, slot) {
                     upgrades1[upgrades1.length] = hand1[id]
                     hand1[id] = "null"
                     upgradesLeft--
-                    displayUpgrades(1)
-                    displayHand(1)
+                    display(1)
                 }
             }
             if(slot.substring(0, 4) == "item") {
@@ -978,7 +1108,7 @@ function clicked(player, slot) {
                     selected = -1
                     itemDisplays1[id].innerText = cardNames[items1[id]]
                     itemsLeft--;
-                    displayHand(1)
+                    display(1)
                 }
             }
             if(slot == "helmet") {
@@ -991,7 +1121,21 @@ function clicked(player, slot) {
                     selected = -1
                     helmetDisplay1.innerText = cardNames[helmet1]
                     itemsLeft--;
-                    displayHand(1)
+                    display(1)
+                }
+            }
+            if(slot.substring(0, 6) == "fusion") {
+                if(slot.substring(7) == "wi" && itemsLeft >= 1) {
+                    itemsLeft--
+                    discard1[discard1.length] = items1[0]
+                    discard1[discard1.length] = items1[1]
+                    discard1[discard1.length] = items1[2]
+                    items1 = ["null", "null", "null"]
+                    itemDisplays1[1].innerText = ""
+                    itemDisplays1[2].innerText = ""
+                    itemDisplays1[0].innerText = cardNames["witherImpact"]
+                    items1[0] = "witherImpact"
+                    display(1)
                 }
             }
         }
@@ -1045,8 +1189,7 @@ function clicked(player, slot) {
                     if(name == "glueArrow") arrowEffects = "glue"
                     phase = 2;
                     nextPhase();
-                    displayHand(1)
-                    displayDiscards(1)
+                    display(1)
                 }
             }
         }
@@ -1059,25 +1202,22 @@ function clicked(player, slot) {
                     damage(1, -Math.max(0, currentDamage - currentBlocks))
                     consumablesLeft--
                     discard1[discard1.length] = "zombieSword"
-                    displayDiscards(1)
                     hand1[id] = "null"
-                    displayHand(1)
+                    display(1)
                 }
                 if(item == "wandOfHealing") {
                     damage(1, -40)
                     consumablesLeft--
                     discard1[discard1.length] = "wandOfHealing"
-                    displayDiscards(1)
                     hand1[id] = "null"
-                    displayHand(1)
+                    display(1)
                 }
                 if(item == "steakStake") {
                     if(health2 < 40) damage(2, 1000)
                     consumablesLeft--
                     discard1[discard1.length] = "steakStake"
-                    displayDiscards(1)
                     hand1[id] = "null"
-                    displayHand(1)
+                    display(1)
                 }
                 if(item == "scavenger") {
                     for(card in discard1) {
@@ -1088,17 +1228,15 @@ function clicked(player, slot) {
                     }
                     consumablesLeft--
                     discard1[discard1.length] = "scavenger"
-                    displayDiscards(1)
                     hand1[id] = "null"
-                    displayHand(1)
+                    display(1)
                 }
                 if(item == "pocketEspressoMachine") {
                     mana1 += 150
                     consumablesLeft--
                     discard1[discard1.length] = "pocketEspressoMachine"
-                    displayDiscards(1)
                     hand1[id] = "null"
-                    displayHand(1)
+                    display(1)
                     updateStats(1)
                 }
                 if(item == "lethality") {
@@ -1120,7 +1258,7 @@ function clicked(player, slot) {
                     if(item == "lividDagger") {
                         ability(1, 0, (() => {damage(2, 20 + damageModifier)}))
                         discard1[discard1.length] = "lividDagger"
-                        displayDiscards(1)
+                        display(1)
                         items1[id] = "null"
                         itemDisplays1[id].innerText = ""
                     }
@@ -1131,14 +1269,14 @@ function clicked(player, slot) {
         if(phase == "archer") {
             if(slot.substring(0, 7) == "discard") {
                 let id = Number.parseInt(slot.substring(7));
-                if(arrows.includes(discard1[id])) {
+                if(arrows.includes(discard2[id])) {
                     hand2[hand2.length] = discard2[id]
                     discard2[id] = "null"
 
                     phase = 0
                     draw(2)
                     nextPhase()
-                    displayDiscards(2)
+                    display(2)
                 }
             }
         }
@@ -1152,8 +1290,7 @@ function clicked(player, slot) {
                     upgrades2[upgrades2.length] = hand2[id]
                     hand2[id] = "null"
                     upgradesLeft--
-                    displayUpgrades(2)
-                    displayHand(2)
+                    display(2)
                 }
             }
             if(slot.substring(0, 4) == "item") {
@@ -1167,7 +1304,7 @@ function clicked(player, slot) {
                     selected = -1
                     itemDisplays2[id].innerText = cardNames[items2[id]]
                     itemsLeft--;
-                    displayHand(2)
+                    display(2)
                 }
             }
             if(slot == "helmet") {
@@ -1180,7 +1317,21 @@ function clicked(player, slot) {
                     selected = -1
                     helmetDisplay2.innerText = cardNames[helmet2]
                     itemsLeft--;
-                    displayHand(2)
+                    display(2)
+                }
+            }
+            if(slot.substring(0, 6) == "fusion") {
+                if(slot.substring(7) == "wi" && itemsLeft >= 1) {
+                    itemsLeft--
+                    discard2[discard2.length] = items2[0]
+                    discard2[discard2.length] = items2[1]
+                    discard2[discard2.length] = items2[2]
+                    items2 = ["null", "null", "null"]
+                    itemDisplays2[1].innerText = ""
+                    itemDisplays2[2].innerText = ""
+                    itemDisplays2[0].innerText = cardNames["witherImpact"]
+                    items2[0] = "witherImpact"
+                    display(1)
                 }
             }
         }
@@ -1234,8 +1385,7 @@ function clicked(player, slot) {
                     if(name == "glueArrow") arrowEffects = "glue"
                     phase = 2;
                     nextPhase();
-                    displayHand(2)
-                    displayDiscards(2)
+                    display(2)
                 }
             }
         }
@@ -1249,24 +1399,21 @@ function clicked(player, slot) {
                     consumablesLeft--
                     hand2[id] = "null"
                     discard2[discard2.length] = "zombieSword"
-                    displayDiscards(2)
-                    displayHand(2)
+                    display(2)
                 }
                 if(item == "wandOfHealing") {
                     damage(2, -40)
                     consumablesLeft--
                     hand2[id] = "null"
                     discard2[discard2.length] = "wandOfHealing"
-                    displayDiscards(2)
-                    displayHand(2)
+                    display(2)
                 }
                 if(item == "steakStake") {
                     if(health1 < 40) damage(1, 1000)
                     consumablesLeft--
                     hand2[id] = "null"
                     discard2[discard2.length] = "steakStake"
-                    displayDiscards(2)
-                    displayHand(2)
+                    display(2)
                 }
                 if(item == "scavenger") {
                     for(card in discard2) {
@@ -1277,17 +1424,15 @@ function clicked(player, slot) {
                     }
                     consumablesLeft--
                     discard2[discard2.length] = "scavenger"
-                    displayDiscards(2)
                     hand2[id] = "null"
-                    displayHand(2)
+                    display(2)
                 }
                 if(item == "pocketEspressoMachine") {
                     mana2 += 150
                     consumablesLeft--
                     hand2[id] = "null"
                     discard2[discard2.length] = "pocketEspressoMachine"
-                    displayDiscards(2)
-                    displayHand(2)
+                    display(2)
                     updateStats(2)
                 }
                 if(item == "lethality") {
@@ -1310,7 +1455,7 @@ function clicked(player, slot) {
                         ability(2, 0, (() => {damage(1, 20 + damageModifier)}))
                         items2[id] = "null"
                         discard2[discard2.length] = "lividDagger"
-                        displayDiscards(2)
+                        display(2)
                         itemDisplays2[id].innerText = ""
                     }
                 }
@@ -1332,8 +1477,8 @@ function ability(player, manaRequirement, effect) {
                 upgrades1[i] = "null"
                 hand1[hand1.length] = "mage"
             }
-            displayHand(1)
-            displayUpgrades(1)
+            display(1)
+            display(1)
         }
         mana1 -= manaRequirement
         if(mageUpgrades >= 2) {
@@ -1353,8 +1498,8 @@ function ability(player, manaRequirement, effect) {
                 upgrades2[i] = "null"
                 hand2[hand2.length] = "mage"
             }
-            displayHand(2)
-            displayUpgrades(2)
+            display(2)
+            display(2)
         }
         mana2 -= manaRequirement
         if(mageUpgrades >= 2) {
@@ -1371,6 +1516,12 @@ function updateStats(player) {
     } else {
         p2stats.innerText = `Health: ${health2} / 200\nFerocity: ${fero2} / 100\nMana: ${mana2}`
     }
+}
+
+function display(player) {
+    displayHand(player)
+    displayUpgrades(player)
+    displayDiscards(player)
 }
 
 function displayHand(player) {
@@ -1396,6 +1547,21 @@ function displayHand(player) {
             ref.onclick = (() => {clicked(1, `hand${index}`)})
             p1board.appendChild(ref)
         }
+
+        y += 0.2 * tileWidth
+
+        if(items1.includes("witherShield") && items1.includes("shadowWarp") && items1.includes("implosion")) {
+            let ref = document.createElement("div")
+            ref.innerText = cardNames["witherImpact"]
+            ref.style.top = y;
+            ref.style.left = 0.1 * tileWidth
+            y += 1.10 * tileWidth
+            ref.classList.add("tile")
+            ref.classList.add("p1hand")
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions["witherImpact"];})
+            ref.onclick = (() => {clicked(1, `fusion:wi`)})
+            p1board.appendChild(ref)
+        }
     } else if(player == 2) {
         let displays = document.getElementsByClassName("p2hand")
         let len = displays.length
@@ -1416,6 +1582,21 @@ function displayHand(player) {
             ref.classList.add("p2hand")
             ref.onmouseover = (() => {if(!botMatch) infoBox.innerText = cardDescriptions[card];})
             ref.onclick = (() => {clicked(2, `hand${index}`)})
+            p2board.appendChild(ref)
+        }
+
+        y += 0.2 * tileWidth
+
+        if(items2.includes("witherShield") && items2.includes("shadowWarp") && items2.includes("implosion")) {
+            let ref = document.createElement("div")
+            ref.innerText = cardNames["witherImpact"]
+            ref.style.top = y;
+            ref.style.left = width - 1.1 * tileWidth
+            y += 1.10 * tileWidth
+            ref.classList.add("tile")
+            ref.classList.add("p2hand")
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions["witherImpact"];})
+            ref.onclick = (() => {clicked(2, `fusion:wi`)})
             p2board.appendChild(ref)
         }
     }
@@ -1527,7 +1708,7 @@ function damage(player, amount) {
                 helmet1 = "null"
                 helmetDisplay1.innerText = ""
                 discard1[discard1.length] = "skeletonHelmet"
-                displayDiscards(1)
+                display(1)
                 return;
             }
             health1 -= amount
@@ -1553,7 +1734,7 @@ function damage(player, amount) {
                 helmet2 = "null"
                 helmetDisplay2.innerText = ""
                 discard2[discard2.length] = "skeletonHelmet"
-                displayDiscards(2)
+                display(2)
                 return;
             }
             health2 -= amount
@@ -1588,7 +1769,7 @@ function draw(player) {
                 hand1[hand1.length] = card;
                 deck1[i] = "null"
                 deckSize1--
-                displayHand(1)
+                display(1)
                 return;
             } else current++;
         }
@@ -1606,7 +1787,7 @@ function draw(player) {
                 hand2[hand2.length] = card;
                 deck2[i] = "null"
                 deckSize2--
-                displayHand(2)
+                display(2)
                 return;
             } else current++;
         }
@@ -1671,8 +1852,8 @@ function nextPhase() {
                     if(berserkUpgrades == 2 && upgrade == "berserk") {
                         upgrades1[i] = "null"
                         hand1[hand1.length] = "berserk"
-                        displayHand(1)
-                        displayUpgrades(1)
+                        display(1)
+                        display(1)
                     }
                 }
             } else {
@@ -1684,8 +1865,8 @@ function nextPhase() {
                     if(berserkUpgrades == 2 && upgrade == "berserk") {
                         upgrades2[i] = "null"
                         hand2[hand2.length] = "berserk"
-                        displayHand(2)
-                        displayUpgrades(2)
+                        display(2)
+                        display(2)
                     }
                 }
             }
@@ -1758,8 +1939,8 @@ function nextPhase() {
                         upgrades1[i] = "null"
                         hand1[hand1.length] = "archer"
                     }
-                    displayHand(1)
-                    displayUpgrades(1)
+                    display(1)
+                    display(1)
                 }
                 phase = "archer"
             }
@@ -1788,8 +1969,8 @@ function nextPhase() {
                         upgrades2[i] = "null"
                         hand2[hand2.length] = "archer"
                     }
-                    displayHand(2)
-                    displayUpgrades(2)
+                    display(2)
+                    display(2)
                 }
                 phase = "archer"
             }

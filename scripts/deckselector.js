@@ -26,7 +26,7 @@ try {
             y += 1.10 * tileWidth
         }
         ref.classList.add("tile")
-        ref.innerText = `Deck ${duplicate}`
+        ref.innerText = deck.name ?? `Deck ${duplicate}`
         ref.style.top = y
         ref.style.left = x
         body.appendChild(ref)
