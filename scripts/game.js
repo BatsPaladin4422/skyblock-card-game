@@ -57,7 +57,7 @@ const cardDescriptions = {
     "wandOfHealing": "Heal 40 Health\n\nConsumable",
     "zombieSword": "10D 15B\nAttacking heals for the amount\nof damage dealt\n\nConsumable Item - Weapon",
     "firstStrike": "Gain +100 ferocity at\nthe start of the game\n\nEffect",
-    "scarfsStudies": "Cost: 3 Class cards\nYou may play discardedupgrade\ncards. You may play an additional\nupgrade each turn\n\nFusion Upgrade",
+    "scarfsStudies": "Cost: 3 unique Class cards\nYou may play discarded upgrade\ncards. You may play an additional\nupgrade each turn\n\nFusion Upgrade",
     "witherImpact": "Cost: Implosion, Shadow Warp,\nWither Shield\n0D 50B\n125 Mana: 30 AD, heal 20 Health\n\nFusion Item",
     "darkClaymore": "Cost: 3 Weapon cards\n35D 40B\nUpon fusing, +100 Ferocity\n\nFusion Item - Weapon",
     "implosion": "0D 10B\n125 Mana: 30 AD\n\nItem",
@@ -99,6 +99,10 @@ const botDecks = {
     "Bladesoul": ["wardenHelmet","swordOfBadHealth","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice","handyBloodChalice"],
     "Necron": ["valkyrie","swordOfBadHealth","steakStake","werewolfHelmet","handyBloodChalice","handyBloodChalice","berserk","berserk"],
     "Storm": ["witherShield","shadowWarp","implosion","witherGoggles","mage","mage","helpFromTheAbove","helpFromTheAbove"]
+}
+
+const bossRushes = {
+    "All Bosses": ["Livid", "Mage Outlaw", "Necron", "Storm", "Bladesoul"]
 }
 
 const botLogic = {
@@ -832,6 +836,11 @@ if(botMatch) {
     deck2 = JSON.parse(localStorage.getItem("deck2")).cards
 }
 
+if(botMatch && args.rush && args.rush.indexOf(args.boss) == 0) {
+    localStorage.setItem("rushLosses", "0")
+    localStorage.setItem("rushWins", "0")
+}
+
 
 let upgrades1 = []
 let upgrades2 = []
@@ -1097,6 +1106,16 @@ function clicked(player, slot) {
                     display(1)
                 }
             }
+            if(slot.substring(0, 7) == "discard" && upgrades1.includes("scarfsStudies")) {
+                let id = Number.parseInt(slot.substring(7));
+                if(upgradesLeft <= 0) return;
+                if(upgradeCards.includes(discard1[id])) {
+                    upgrades1[upgrades1.length] = discard1[id]
+                    discard1[id] = "null"
+                    upgradesLeft--
+                    display(1)
+                }
+            }
             if(slot.substring(0, 4) == "item") {
                 let id = Number.parseInt(slot.substring(4));
                 if(selected != -1 && itemCardStats[hand1[selected]]) {
@@ -1125,7 +1144,7 @@ function clicked(player, slot) {
                 }
             }
             if(slot.substring(0, 6) == "fusion") {
-                if(slot.substring(7) == "wi" && itemsLeft >= 1) {
+                if(slot.substring(7) == "wi" && itemsLeft) {
                     itemsLeft--
                     discard1[discard1.length] = items1[0]
                     discard1[discard1.length] = items1[1]
@@ -1135,6 +1154,56 @@ function clicked(player, slot) {
                     itemDisplays1[2].innerText = ""
                     itemDisplays1[0].innerText = cardNames["witherImpact"]
                     items1[0] = "witherImpact"
+                    display(1)
+                }
+                if(slot.substring(7) == "ss" && upgradesLeft) {
+                    let archerUpgrades = 0;
+                    let berserkUpgrades = 0;
+                    let healerUpgrades = 0;
+                    let mageUpgrades = 0;
+                    let tankUpgrades = 0;
+
+                    for(card of upgrades1) {
+                        if(card == "archer") archerUpgrades++;
+                        if(card == "berserk") berserkUpgrades++;
+                        if(card == "healer") healerUpgrades++;
+                        if(card == "mage") mageUpgrades++;
+                        if(card == "tank") tankUpgrades++;
+                    }
+
+                    let studiesCount = Math.min(1, archerUpgrades) + Math.min(1, berserkUpgrades) + Math.min(1, healerUpgrades) + Math.min(1, mageUpgrades) + Math.min(1, tankUpgrades)
+
+                    if(studiesCount == 3) {
+                        for(card in upgrades1) {
+                            if(upgrades1[card] == "archer" && archerUpgrades >= 1) {
+                                archerUpgrades = 0
+                                discard1[discard1.length] = upgrades1[card]
+                                upgrades1[card] = "null"
+                            }
+                            if(upgrades1[card] == "berserk" && berserkUpgrades >= 1) {
+                                berserkUpgrades = 0
+                                discard1[discard1.length] = upgrades1[card]
+                                upgrades1[card] = "null"
+                            }
+                            if(upgrades1[card] == "healer" && healerUpgrades >= 1) {
+                                healerUpgrades = 0
+                                discard1[discard1.length] = upgrades1[card]
+                                upgrades1[card] = "null"
+                            }
+                            if(upgrades1[card] == "mage" && mageUpgrades >= 1) {
+                                mageUpgrades = 0
+                                discard1[discard1.length] = upgrades1[card]
+                                upgrades1[card] = "null"
+                            }
+                            if(upgrades1[card] == "tank" && tankUpgrades >= 1) {
+                                tankUpgrades = 0
+                                discard1[discard1.length] = upgrades1[card]
+                                upgrades1[card] = "null"
+                            }
+                        }
+                    }
+
+                    upgrades1[upgrades1.length] = "scarfsStudies"
                     display(1)
                 }
             }
@@ -1286,9 +1355,18 @@ function clicked(player, slot) {
                 selected = id
                 if(upgradesLeft <= 0) return;
                 if(upgradeCards.includes(hand2[id])) {
-                console.log(hand2[id])
                     upgrades2[upgrades2.length] = hand2[id]
                     hand2[id] = "null"
+                    upgradesLeft--
+                    display(2)
+                }
+            }
+            if(slot.substring(0, 7) == "discard" && upgrades2.includes("scarfsStudies")) {
+                let id = Number.parseInt(slot.substring(7));
+                if(upgradesLeft <= 0) return;
+                if(upgradeCards.includes(discard2[id])) {
+                    upgrades2[upgrades2.length] = discard2[id]
+                    discard2[id] = "null"
                     upgradesLeft--
                     display(2)
                 }
@@ -1332,6 +1410,56 @@ function clicked(player, slot) {
                     itemDisplays2[0].innerText = cardNames["witherImpact"]
                     items2[0] = "witherImpact"
                     display(1)
+                }
+                if(slot.substring(7) == "ss" && upgradesLeft) {
+                    let archerUpgrades = 0;
+                    let berserkUpgrades = 0;
+                    let healerUpgrades = 0;
+                    let mageUpgrades = 0;
+                    let tankUpgrades = 0;
+
+                    for(card of upgrades2) {
+                        if(card == "archer") archerUpgrades++;
+                        if(card == "berserk") berserkUpgrades++;
+                        if(card == "healer") healerUpgrades++;
+                        if(card == "mage") mageUpgrades++;
+                        if(card == "tank") tankUpgrades++;
+                    }
+
+                    let studiesCount = Math.min(1, archerUpgrades) + Math.min(1, berserkUpgrades) + Math.min(1, healerUpgrades) + Math.min(1, mageUpgrades) + Math.min(1, tankUpgrades)
+
+                    if(studiesCount == 3) {
+                        for(card in upgrades2) {
+                            if(upgrades2[card] == "archer" && archerUpgrades >= 1) {
+                                archerUpgrades = 0
+                                discard2[discard2.length] = upgrades2[card]
+                                upgrades2[card] = "null"
+                            }
+                            if(upgrades2[card] == "berserk" && berserkUpgrades >= 1) {
+                                berserkUpgrades = 0
+                                discard2[discard2.length] = upgrades2[card]
+                                upgrades2[card] = "null"
+                            }
+                            if(upgrades2[card] == "healer" && healerUpgrades >= 1) {
+                                healerUpgrades = 0
+                                discard2[discard2.length] = upgrades2[card]
+                                upgrades2[card] = "null"
+                            }
+                            if(upgrades2[card] == "mage" && mageUpgrades >= 1) {
+                                mageUpgrades = 0
+                                discard2[discard2.length] = upgrades2[card]
+                                upgrades2[card] = "null"
+                            }
+                            if(upgrades2[card] == "tank" && tankUpgrades >= 1) {
+                                tankUpgrades = 0
+                                discard2[discard2.length] = upgrades2[card]
+                                upgrades2[card] = "null"
+                            }
+                        }
+                    }
+
+                    upgrades2[upgrades2.length] = "scarfsStudies"
+                    display(2)
                 }
             }
         }
@@ -1562,6 +1690,35 @@ function displayHand(player) {
             ref.onclick = (() => {clicked(1, `fusion:wi`)})
             p1board.appendChild(ref)
         }
+
+        let archerUpgrades = 0;
+        let berserkUpgrades = 0;
+        let healerUpgrades = 0;
+        let mageUpgrades = 0;
+        let tankUpgrades = 0;
+
+        for(card of upgrades1) {
+            if(card == "archer") archerUpgrades++;
+            if(card == "berserk") berserkUpgrades++;
+            if(card == "healer") healerUpgrades++;
+            if(card == "mage") mageUpgrades++;
+            if(card == "tank") tankUpgrades++;
+        }
+
+        let studiesCount = Math.min(1, archerUpgrades) + Math.min(1, berserkUpgrades) + Math.min(1, healerUpgrades) + Math.min(1, mageUpgrades) + Math.min(1, tankUpgrades)
+
+        if(studiesCount >= 3 && !upgrades1.includes("scarfsStudies")) {
+            let ref = document.createElement("div")
+            ref.innerText = cardNames["scarfsStudies"]
+            ref.style.top = y;
+            ref.style.left = 0.1 * tileWidth
+            y += 1.10 * tileWidth
+            ref.classList.add("tile")
+            ref.classList.add("p1hand")
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions["scarfsStudies"];})
+            ref.onclick = (() => {clicked(1, `fusion:ss`)})
+            // p1board.appendChild(ref)
+        }
     } else if(player == 2) {
         let displays = document.getElementsByClassName("p2hand")
         let len = displays.length
@@ -1598,6 +1755,35 @@ function displayHand(player) {
             ref.onmouseover = (() => {infoBox.innerText = cardDescriptions["witherImpact"];})
             ref.onclick = (() => {clicked(2, `fusion:wi`)})
             p2board.appendChild(ref)
+        }
+
+        let archerUpgrades = 0;
+        let berserkUpgrades = 0;
+        let healerUpgrades = 0;
+        let mageUpgrades = 0;
+        let tankUpgrades = 0;
+
+        for(card of upgrades2) {
+            if(card == "archer") archerUpgrades++;
+            if(card == "berserk") berserkUpgrades++;
+            if(card == "healer") healerUpgrades++;
+            if(card == "mage") mageUpgrades++;
+            if(card == "tank") tankUpgrades++;
+        }
+
+        let studiesCount = Math.min(1, archerUpgrades) + Math.min(1, berserkUpgrades) + Math.min(1, healerUpgrades) + Math.min(1, mageUpgrades) + Math.min(1, tankUpgrades)
+
+        if(studiesCount >= 3 && !upgrades2.includes("scarfsStudies")) {
+            let ref = document.createElement("div")
+            ref.innerText = cardNames["scarfsStudies"]
+            ref.style.top = y;
+            ref.style.left = width - 1.1 * tileWidth
+            y += 1.10 * tileWidth
+            ref.classList.add("tile")
+            ref.classList.add("p2hand")
+            ref.onmouseover = (() => {infoBox.innerText = cardDescriptions["scarfsStudies"];})
+            ref.onclick = (() => {clicked(2, `fusion:ss`)})
+            // p2board.appendChild(ref)
         }
     }
 }
@@ -1716,7 +1902,16 @@ function damage(player, amount) {
             if(health1 <= 0) {
                 let url = document.URL
                 url = url.substring(0, url.length - stuff.length)
-                window.location.href = url + `#result-${(() => {
+                if(botMatch && args.rush) {
+                    localStorage.setItem("rushLosses", `${Number.parseInt(localStorage.getItem("rushLosses")) + 1}`)
+                    window.location.href = url + `#play-{"boss":"${args.rush[args.rush.indexOf(args.boss) + 1]}","rush":${JSON.stringify(args.rush)}}`
+                    if(args.rush.indexOf(args.boss) == args.rush.length - 1) {
+                        let wins = Number.parseInt(localStorage.getItem("rushWins"))
+                        let losses = Number.parseInt(localStorage.getItem("rushLosses"))
+                        let percent = Math.round((wins / (wins + losses)) * 100)
+                        window.location.href = url + `#result-Wins: ${wins} Losses: ${losses},Winrate: ${percent}%,Rank: ${rank(percent)}`
+                    }
+                } else window.location.href = url + `#result-${(() => {
                     if(!botMatch) return "Player 2 wins"
                     if(botMatch) return `You lost against ${args.boss}`
                 })()}`
@@ -1742,7 +1937,16 @@ function damage(player, amount) {
             if(health2 <= 0) {
                 let url = document.URL
                 url = url.substring(0, url.length - stuff.length)
-                window.location.href = url + `#result-${(() => {
+                if(botMatch && args.rush) {
+                    localStorage.setItem("rushWins", `${Number.parseInt(localStorage.getItem("rushWins")) + 1}`)
+                    window.location.href = url + `#play-{"boss":"${args.rush[args.rush.indexOf(args.boss) + 1]}","rush":${JSON.stringify(args.rush)}}`
+                    if(args.rush.indexOf(args.boss) == args.rush.length - 1) {
+                        let wins = Number.parseInt(localStorage.getItem("rushWins"))
+                        let losses = Number.parseInt(localStorage.getItem("rushLosses"))
+                        let percent = Math.round((wins / (wins + losses)) * 100)
+                        window.location.href = url + `#result-Wins: ${wins} Losses: ${losses},Winrate: ${percent}%,Rank: ${rank(percent)}`
+                    }
+                } else window.location.href = url + `#result-${(() => {
                     if(!botMatch) return "Player 1 wins"
                     if(botMatch) return `You won against ${args.boss}`
                 })()}`
@@ -1819,6 +2023,9 @@ function nextPhase() {
         upgradesLeft = 1;
         consumablesLeft = 1;
         selected = -1;
+
+        if(activePlayer == 1 && upgrades1.includes("scarfsStudies")) upgradesLeft++;
+        if(activePlayer == 2 && upgrades2.includes("scarfsStudies")) upgradesLeft++;
     }
     if(phase == 2) {
         swordOfBadHealthed = false
@@ -2014,6 +2221,15 @@ function redeal(player) {
     }
 }
 
+function rank(percent) {
+    if(percent == 100) return "S+";
+    if(percent >= 90) return "S";
+    if(percent >= 75) return "A";
+    if(percent >= 60) return "B";
+    if(percent >= 40) return "C";
+    if(percent >= 20) return "D";
+    return "F"
+}
 
 setInterval(() => {
     let effectiveActivePlayer = phase == 3 ? 3 - activePlayer : activePlayer

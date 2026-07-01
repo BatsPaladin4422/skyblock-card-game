@@ -1,6 +1,6 @@
 if(stuff.substring(0, 7) != "#result") throw false;
 
-infoBox.innerText = stuff.substring(8).replaceAll("%20", " ")
+infoBox.innerText = stuff.substring(8).replaceAll("%20", " ").replaceAll(",", "\n")
 
 {
     let backButton = document.createElement("div")
